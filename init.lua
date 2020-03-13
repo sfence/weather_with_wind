@@ -10,8 +10,9 @@ if minetest.get_modpath("intllib") and intllib then
 end
 
 -- Load files
-local WeatherWithWind_path = minetest.get_modpath("WeatherWithWind")
+local WeatherWithWind_path = minetest.get_modpath("weather_with_wind")
 
+dofile(WeatherWithWind_path.."/callback.lua")
 dofile(WeatherWithWind_path.."/weathers.lua")
 dofile(WeatherWithWind_path.."/step.lua")
 
