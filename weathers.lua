@@ -21,6 +21,8 @@ local S = WeatherWithWind.S;
 --          -> only one falling definition is expected in basic weather
 --          -> precipitation -> intensity of falling
 --          -> water_precipitation -> true if intensity depend on humanity and cloud density 
+--          -> sound -> specify sound, if same should be play
+--          -> sound_gain -> sound gain depends on precipitation
 --          -> downfalls -> table of downfalls by temperature
 --              -> minpos ->
 --              -> maxpos ->
@@ -35,6 +37,8 @@ local S = WeatherWithWind.S;
 --              -> texture -> picture
 --              -> animation ->
 --              -> glow ->
+--
+-- lightning_density -> lighting density
 --
 -- update_interval -> seconds between weather updates
 --
