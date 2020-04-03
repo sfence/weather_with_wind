@@ -8,6 +8,8 @@ WeatherWithWind.callback_get_new_weather = function(weather_old)
     local time_diff = weather_old.time_end - weather_old.time_start;
     weather_new.time_start = weather_old.time_end+time_diff;
     weather_new.time_end = weather_old.time_end+2*time_diff;
+    
+    return weather_new;
   end
 
 
