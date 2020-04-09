@@ -9,6 +9,9 @@ if minetest.get_modpath("intllib") and intllib then
   WeatherWithWind.S = intllib.Getter()
 end
 
+-- storage
+WeatherWithWind.storage = minetest.get_mod_storage();
+
 -- Load files
 local WeatherWithWind_path = minetest.get_modpath("weather_with_wind")
 

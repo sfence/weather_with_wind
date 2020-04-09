@@ -127,13 +127,13 @@ WeatherWithWind.actual_weather = function (weather_old, weather_new, time)
         },
         fallings = {
           {
-            precipitation = weather_old.fallings[0].precipitation*old_part,
-            water_precipitation = weather_old.fallings[0].water_precipitation,
+            precipitation = weather_old.fallings[1].precipitation*old_part,
+            water_precipitation = weather_old.fallings[1].water_precipitation,
             downfalls = weather_old.fallings.downfalls,
           },
           {
-            precipitation = weather_new.fallings[0].precipitation*new_part,
-            water_precipitation = weather_new.fallings[0].water_precipitation,
+            precipitation = weather_new.fallings[1].precipitation*new_part,
+            water_precipitation = weather_new.fallings[1].water_precipitation,
             downfalls = weather_new.fallings.downfalls,
           },
         },
@@ -147,10 +147,16 @@ WeatherWithWind.actual_weather = function (weather_old, weather_new, time)
         
         stable = false,
       };
+    
+    return actual_weather;
   end
 
 WeatherWithWind.localized_weather = function (weather_actual, pos)
+    --minetest.log("warning", "act weather: "..dump(weather_actual))
     -- change local humadity by weather humadity
+    local pos_biome_data = minetest.get_biome_data(pos);
+    local pos_heat = pos_biome_data.heat;
+    local pos_humidity = pos_biome_data.humidity;
     local pos_humidity = minetest.get_humidity(pos);
     
     local humidity_change = (weather_actual.humidity-50)/50;
@@ -160,6 +166,8 @@ WeatherWithWind.localized_weather = function (weather_actual, pos)
     else
       pos_humidity = pos_humidity + pos_humidity*humidity_change;
     end
+    
+    pos_heat = pos_heat + weather_actual.temperature;
     
     -- change cloud denstiy by local humadity
     local cloud_density = weather_actual.clouds.density;
@@ -171,7 +179,7 @@ WeatherWithWind.localized_weather = function (weather_actual, pos)
     
     local weather_on_pos = {
         wind = table.copy(weather_actual.wind),
-        temperature = weather_actual.temperature,
+        temperature = pos_heat,
         humidity = pos_humidity,
         clouds = {
           density = cloud_density,
@@ -200,14 +208,18 @@ WeatherWithWind.localized_weather = function (weather_actual, pos)
       end
       
       local temp_pos = WeatherWithWind.callback_get_temperature(pos);
+      temp_pos = temp_pos + weather_actual.temperature;
       local key_now = -300; -- more then absolute zero
       local use_downfall = {};
       
-      for key, downfall in pairs(falling.downfalls) do
-        if (    ((key_now<key) and (key_now<temp_pos))
-            or ((key<key_now) and (key>=temp_pos) and (key_now>=temp_pos))) then
-          key_now = key;
-          use_downfall = downfall;
+      if      (falling.downfalls~=nil) 
+          and (#falling.downfalls > 0) then
+        for key, downfall in pairs(falling.downfalls) do
+          if (    ((key_now<key) and (key_now<temp_pos))
+              or ((key<key_now) and (key>=temp_pos) and (key_now>=temp_pos))) then
+            key_now = key;
+            use_downfall = downfall;
+          end
         end
       end
       
