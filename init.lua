@@ -1,23 +1,23 @@
 -- Mods which include functions for animals
 
 -- Definitions made by this mod that other mods can use too
-WeatherWithWind = {}
+weather_with_wind = {}
 
 -- localize support via initlib
-WeatherWithWind.S = function(s) return s end
+weather_with_wind.S = function(s) return s end
 if minetest.get_modpath("intllib") and intllib then
-  WeatherWithWind.S = intllib.Getter()
+  weather_with_wind.S = intllib.Getter()
 end
 
 -- storage
-WeatherWithWind.storage = minetest.get_mod_storage();
+weather_with_wind.storage = minetest.get_mod_storage();
 
 -- Load files
-local WeatherWithWind_path = minetest.get_modpath("weather_with_wind")
+local weather_with_wind_path = minetest.get_modpath("weather_with_wind")
 
-dofile(WeatherWithWind_path.."/callback.lua")
-dofile(WeatherWithWind_path.."/weathers.lua")
-dofile(WeatherWithWind_path.."/step.lua")
+dofile(weather_with_wind_path.."/callback.lua")
+dofile(weather_with_wind_path.."/weathers.lua")
+dofile(weather_with_wind_path.."/step.lua")
 
-WeatherWithWind.S = nil
+weather_with_wind.S = nil
 

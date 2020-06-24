@@ -1,5 +1,5 @@
 
-local S = WeatherWithWind.S;
+local S = weather_with_wind.S;
 
 -- weathers
 
@@ -45,7 +45,7 @@ local S = WeatherWithWind.S;
 -- time_start
 -- time_end
 
-WeatherWithWind.clear_weather = {
+weather_with_wind.clear_weather = {
     wind = {x=0,z=2},
     temperature = 0,
     humidity = 50,
@@ -70,6 +70,12 @@ WeatherWithWind.clear_weather = {
       {
         precipitation = 0,
         water_precipitation = false,
+        darken_color = {--#ffffff00
+          r = 0xff,
+          g = 0xff,
+          b = 0xff,
+          a = 0x00,
+        },
         downfalls = {},
       },
     },
@@ -84,7 +90,7 @@ WeatherWithWind.clear_weather = {
     stable = true,
   };
 
-WeatherWithWind.actual_weather = function (weather_old, weather_new, time)
+weather_with_wind.actual_weather = function (weather_old, weather_new, time)
     if (time<weather_old.time_end) then
       return weather_old;
     end
@@ -129,11 +135,13 @@ WeatherWithWind.actual_weather = function (weather_old, weather_new, time)
           {
             precipitation = weather_old.fallings[1].precipitation*old_part,
             water_precipitation = weather_old.fallings[1].water_precipitation,
+            darken_color = weather_old.fallings[1].darken_color,
             downfalls = weather_old.fallings.downfalls,
           },
           {
             precipitation = weather_new.fallings[1].precipitation*new_part,
             water_precipitation = weather_new.fallings[1].water_precipitation,
+            darken_color = weather_new.fallings[1].darken_color,
             downfalls = weather_new.fallings.downfalls,
           },
         },
@@ -151,13 +159,11 @@ WeatherWithWind.actual_weather = function (weather_old, weather_new, time)
     return actual_weather;
   end
 
-WeatherWithWind.localized_weather = function (weather_actual, pos)
+weather_with_wind.localized_weather = function (weather_actual, pos)
     --minetest.log("warning", "act weather: "..dump(weather_actual))
     -- change local humadity by weather humadity
-    local pos_biome_data = minetest.get_biome_data(pos);
-    local pos_heat = pos_biome_data.heat;
-    local pos_humidity = pos_biome_data.humidity;
-    local pos_humidity = minetest.get_humidity(pos);
+    local pos_humidity = weather_with_wind.callback_get_humidity(pos);
+    local pos_temperature = weather_with_wind.callback_get_temperature(pos);
     
     local humidity_change = (weather_actual.humidity-50)/50;
     
@@ -167,7 +173,9 @@ WeatherWithWind.localized_weather = function (weather_actual, pos)
       pos_humidity = pos_humidity + pos_humidity*humidity_change;
     end
     
-    pos_heat = pos_heat + weather_actual.temperature;
+    pos_temperature = pos_temperature + weather_actual.temperature;
+    
+    pos_temperature, pos_humidity = weather_with_wind.callback_get_temperature_and_humidity_in_time(pos_temperature, pos_humidity);
     
     -- change cloud denstiy by local humadity
     local cloud_density = weather_actual.clouds.density;
@@ -179,7 +187,7 @@ WeatherWithWind.localized_weather = function (weather_actual, pos)
     
     local weather_on_pos = {
         wind = table.copy(weather_actual.wind),
-        temperature = pos_heat,
+        temperature = pos_temperature,
         humidity = pos_humidity,
         clouds = {
           density = cloud_density,
@@ -200,23 +208,24 @@ WeatherWithWind.localized_weather = function (weather_actual, pos)
     
     for index, falling in ipairs(weather_actual.fallings) do
       local store_falling = {};
-      store_falling.water_precipitation=falling.water_precipitation;
+      store_falling.water_precipitation = falling.water_precipitation;
+      store_falling.darken_color = table.copy(falling.darken_color);
       if (falling.water_precipitation==true) then
         store_falling.precipitation = falling.precipitation * cloud_density;
+        store_falling.darken_color.a = math.floor(falling.darken_color.a * clouds_density+0.5);
       else
         store_falling.precipitation = falling.precipitation;
       end
       
-      local temp_pos = WeatherWithWind.callback_get_temperature(pos);
-      temp_pos = temp_pos + weather_actual.temperature;
       local key_now = -300; -- more then absolute zero
       local use_downfall = {};
       
+      -- select rigth falling
       if      (falling.downfalls~=nil) 
           and (#falling.downfalls > 0) then
         for key, downfall in pairs(falling.downfalls) do
-          if (    ((key_now<key) and (key_now<temp_pos))
-              or ((key<key_now) and (key>=temp_pos) and (key_now>=temp_pos))) then
+          if (    ((key_now<key) and (key_now<pos_temperature))
+              or ((key<key_now) and (key>=pos_temperature) and (key_now>=pos_temperature))) then
             key_now = key;
             use_downfall = downfall;
           end
